@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Persistence\Eloquent;
 
+use App\Domain\Reports\DTOs\ReportFilters;
 use App\Domain\Tasks\DTOs\TaskData;
 use App\Domain\Tasks\DTOs\TaskFilters;
 use App\Domain\Tasks\Repositories\TaskRepositoryInterface;
 use App\Models\Task;
 use DateTimeInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 /**
@@ -36,6 +38,20 @@ final class EloquentTaskRepository implements TaskRepositoryInterface
             ->orderBy('task_date')
             ->orderBy('starts_at')
             ->paginate($perPage);
+    }
+
+    /**
+     * @return Collection<int, Task>
+     */
+    public function reportForUser(int $userId, ReportFilters $filters): Collection
+    {
+        return Task::query()
+            ->with('project')
+            ->where('user_id', $userId)
+            ->tap(fn (Builder $query) => $this->applyReportFilters($query, $filters))
+            ->orderByDesc('task_date')
+            ->orderByDesc('starts_at')
+            ->get();
     }
 
     public function create(TaskData $data): Task
@@ -82,5 +98,13 @@ final class EloquentTaskRepository implements TaskRepositoryInterface
         $task->forceFill(['notification_sent_at' => $sentAt])->save();
 
         return $task;
+    }
+
+    private function applyReportFilters(Builder $query, ReportFilters $filters): Builder
+    {
+        return $query
+            ->when($filters->start_date !== null, fn (Builder $query) => $query->whereDate('task_date', '>=', $filters->start_date))
+            ->when($filters->end_date !== null, fn (Builder $query) => $query->whereDate('task_date', '<=', $filters->end_date))
+            ->when($filters->status !== null, fn (Builder $query) => $query->where('status', $filters->status));
     }
 }

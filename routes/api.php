@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TelegramSettingsController;
 use App\Http\Controllers\Api\UserController;
@@ -24,6 +25,13 @@ Route::middleware('auth:api')->group(function (): void {
     Route::get('me/telegram', [TelegramSettingsController::class, 'show']);
     Route::put('me/telegram', [TelegramSettingsController::class, 'update']);
     Route::post('me/telegram/test', [TelegramSettingsController::class, 'test']);
+
+    // Report query params:
+    // - report_type: projects, tasks, or both
+    // - status: pending, in_progress, completed, cancelled, or empty for all
+    // - start_date/end_date: optional YYYY-MM-DD range
+    // JSON response: { data: { filters: {...}, projects?: [...], tasks?: [...] } }.
+    Route::get('reports', [ReportController::class, 'show']);
 
     // Project planning and calendar tasks, all scoped to the authenticated user.
     Route::apiResource('projects', ProjectController::class);

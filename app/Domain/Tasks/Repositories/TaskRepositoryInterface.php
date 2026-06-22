@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Tasks\Repositories;
 
+use App\Domain\Reports\DTOs\ReportFilters;
 use App\Domain\Tasks\DTOs\TaskData;
 use App\Domain\Tasks\DTOs\TaskFilters;
 use App\Models\Task;
@@ -23,6 +24,11 @@ interface TaskRepositoryInterface
      * @return LengthAwarePaginator<int, Task>
      */
     public function paginateForUser(int $userId, TaskFilters $filters, int $perPage = 15): LengthAwarePaginator;
+
+    /**
+     * @return Collection<int, Task>
+     */
+    public function reportForUser(int $userId, ReportFilters $filters): Collection;
 
     public function create(TaskData $data): Task;
 
