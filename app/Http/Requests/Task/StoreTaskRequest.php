@@ -39,7 +39,7 @@ class StoreTaskRequest extends FormRequest
             'priority' => ['nullable', Rule::in(['low', 'medium', 'high'])],
             'status' => ['nullable', Rule::in(['pending', 'in_progress', 'completed', 'cancelled'])],
             'notify' => ['boolean'],
-            'notify_minutes_before' => ['nullable', 'integer', 'min:0', 'required_if:notify,true'],
+            'notify_at_datetime' => ['nullable', 'date', 'required_if:notify,true'],
         ];
     }
 
@@ -57,6 +57,10 @@ class StoreTaskRequest extends FormRequest
 
         if ($this->has('ends_at')) {
             $merge['ends_at'] = $this->combineDateAndTime($date, $this->input('ends_at'));
+        }
+
+        if ($this->has('notify_at_datetime')) {
+            $merge['notify_at_datetime'] = $this->combineDateAndTime($date, $this->input('notify_at_datetime'));
         }
 
         if ($this->has('priority')) {

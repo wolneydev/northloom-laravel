@@ -28,7 +28,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'priority',
     'status',
     'notify',
-    'notify_minutes_before',
+    'notify_at_datetime',
+    'notification_sent_at',
 ])]
 class Task extends Model
 {
@@ -45,7 +46,8 @@ class Task extends Model
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
             'notify' => 'boolean',
-            'notify_minutes_before' => 'integer',
+            'notify_at_datetime' => 'datetime',
+            'notification_sent_at' => 'datetime',
         ];
     }
 

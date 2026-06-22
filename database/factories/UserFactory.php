@@ -42,4 +42,15 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
+    /**
+     * Indicate that the user has Telegram notifications enabled with a chat id.
+     */
+    public function withTelegram(?string $chatId = '123456789'): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'telegram_chat_id' => $chatId,
+            'telegram_notifications_enabled' => true,
+        ]);
+    }
 }

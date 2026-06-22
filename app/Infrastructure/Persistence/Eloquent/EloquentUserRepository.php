@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Persistence\Eloquent;
 
+use App\Domain\Users\DTOs\TelegramSettingsData;
 use App\Domain\Users\DTOs\UserData;
 use App\Domain\Users\Repositories\UserRepositoryInterface;
 use App\Models\User;
@@ -45,6 +46,14 @@ final class EloquentUserRepository implements UserRepositoryInterface
     public function update(User $user, UserData $data): User
     {
         $user->fill($data->toArray());
+        $user->save();
+
+        return $user->refresh();
+    }
+
+    public function updateTelegramSettings(User $user, TelegramSettingsData $data): User
+    {
+        $user->forceFill($data->toArray());
         $user->save();
 
         return $user->refresh();

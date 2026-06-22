@@ -24,14 +24,15 @@ class TaskResource extends JsonResource
             'project_name' => $this->whenLoaded('project', fn () => $this->project->name),
             'title' => $this->title,
             'task_date' => $this->task_date?->toDateString(),
-            'starts_at' => $this->starts_at?->toIso8601ZuluString(),
-            'ends_at' => $this->ends_at?->toIso8601ZuluString(),
+            'starts_at' => $this->starts_at?->toIso8601String(),
+            'ends_at' => $this->ends_at?->toIso8601String(),
             'notes' => $this->notes,
             'location' => $this->location,
             'priority' => $this->priority,
             'status' => $this->status,
             'notify' => $this->notify,
-            'notify_minutes_before' => $this->notify_minutes_before,
+            'notify_at_datetime' => $this->notify_at_datetime?->toIso8601String(),
+            'notification_sent_at' => $this->notification_sent_at?->toIso8601String(),
         ];
     }
 }

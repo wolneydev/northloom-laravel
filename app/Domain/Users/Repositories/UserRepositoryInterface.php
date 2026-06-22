@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Users\Repositories;
 
+use App\Domain\Users\DTOs\TelegramSettingsData;
 use App\Domain\Users\DTOs\UserData;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -28,6 +29,8 @@ interface UserRepositoryInterface
     public function create(UserData $data): User;
 
     public function update(User $user, UserData $data): User;
+
+    public function updateTelegramSettings(User $user, TelegramSettingsData $data): User;
 
     public function delete(User $user): bool;
 }

@@ -2,12 +2,14 @@
 
 namespace App\Providers;
 
+use App\Domain\Notifications\Contracts\TelegramNotificationServiceInterface;
 use App\Domain\Projects\Repositories\ProjectRepositoryInterface;
 use App\Domain\Tasks\Repositories\TaskRepositoryInterface;
 use App\Domain\Users\Repositories\UserRepositoryInterface;
 use App\Infrastructure\Persistence\Eloquent\EloquentProjectRepository;
 use App\Infrastructure\Persistence\Eloquent\EloquentTaskRepository;
 use App\Infrastructure\Persistence\Eloquent\EloquentUserRepository;
+use App\Infrastructure\Telegram\TelegramNotificationService;
 use App\Models\Project;
 use App\Models\Task;
 use App\Policies\ProjectPolicy;
@@ -27,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
         UserRepositoryInterface::class => EloquentUserRepository::class,
         ProjectRepositoryInterface::class => EloquentProjectRepository::class,
         TaskRepositoryInterface::class => EloquentTaskRepository::class,
+        TelegramNotificationServiceInterface::class => TelegramNotificationService::class,
     ];
 
     /**

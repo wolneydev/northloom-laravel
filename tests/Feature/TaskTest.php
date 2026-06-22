@@ -33,7 +33,7 @@ class TaskTest extends TestCase
             'priority' => 'high',
             'status' => 'pending',
             'notify' => true,
-            'notify_minutes_before' => 30,
+            'notify_at_datetime' => '2026-06-17 08:30:00',
         ]);
 
         $response->assertCreated()
@@ -41,7 +41,7 @@ class TaskTest extends TestCase
             ->assertJsonPath('data.project_id', $project->id)
             ->assertJsonPath('data.project_name', $project->name)
             ->assertJsonPath('data.notify', true)
-            ->assertJsonPath('data.starts_at', '2026-06-17T09:00:00Z');
+            ->assertJsonPath('data.starts_at', '2026-06-17T09:00:00-03:00');
 
         $this->assertDatabaseHas('tasks', [
             'title' => 'Modelar banco de dados',
@@ -68,12 +68,12 @@ class TaskTest extends TestCase
             'priority' => 'media',
             'status' => 'pendente',
             'notify' => false,
-            'notify_minutes_before' => null,
+            'notify_at_datetime' => null,
         ]);
 
         $response->assertCreated()
-            ->assertJsonPath('data.starts_at', '2026-06-17T11:30:00Z')
-            ->assertJsonPath('data.ends_at', '2026-06-17T12:20:00Z')
+            ->assertJsonPath('data.starts_at', '2026-06-17T11:30:00-03:00')
+            ->assertJsonPath('data.ends_at', '2026-06-17T12:20:00-03:00')
             ->assertJsonPath('data.priority', 'medium')
             ->assertJsonPath('data.status', 'pending');
 

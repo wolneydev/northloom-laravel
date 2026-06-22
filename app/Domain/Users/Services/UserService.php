@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Users\Services;
 
+use App\Domain\Users\DTOs\TelegramSettingsData;
 use App\Domain\Users\DTOs\UserData;
 use App\Domain\Users\Repositories\UserRepositoryInterface;
 use App\Models\User;
@@ -49,6 +50,11 @@ final readonly class UserService
         $user = $this->find($id);
 
         return $this->users->update($user, $data);
+    }
+
+    public function updateTelegramSettings(User $user, TelegramSettingsData $data): User
+    {
+        return $this->users->updateTelegramSettings($user, $data);
     }
 
     public function delete(int $id): bool

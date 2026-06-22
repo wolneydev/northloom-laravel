@@ -34,7 +34,8 @@ class TaskFactory extends Factory
             'priority' => fake()->randomElement(['low', 'medium', 'high']),
             'status' => 'pending',
             'notify' => false,
-            'notify_minutes_before' => null,
+            'notify_at_datetime' => null,
+            'notification_sent_at' => null,
         ];
     }
 

@@ -20,7 +20,7 @@ return [
     'allowed_methods' => ['*'],
 
     // Exact Vite/Vue origin. Cannot be '*' when supports_credentials is true.
-    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:5174')],
+    'allowed_origins' => [env('FRONTEND_URL', 'http://localhost:5175')],
 
     'allowed_origins_patterns' => [],
 

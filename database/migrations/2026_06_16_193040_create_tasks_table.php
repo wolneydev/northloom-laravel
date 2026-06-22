@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('priority')->nullable();
             $table->string('status')->default('pending');
             $table->boolean('notify')->default(false);
-            $table->unsignedInteger('notify_minutes_before')->nullable();
+            $table->dateTime('notify_at_datetime')->nullable();
             $table->timestamps();
 
             // Calendar queries filter by owner and day range, so index both.

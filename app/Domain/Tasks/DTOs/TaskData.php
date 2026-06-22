@@ -24,7 +24,7 @@ final readonly class TaskData
         public ?string $priority = null,
         public ?string $status = null,
         public ?bool $notify = null,
-        public ?int $notify_minutes_before = null,
+        public ?string $notify_at_datetime = null,
     ) {}
 
     /**
@@ -44,7 +44,7 @@ final readonly class TaskData
             priority: isset($data['priority']) ? (string) $data['priority'] : null,
             status: isset($data['status']) ? (string) $data['status'] : null,
             notify: array_key_exists('notify', $data) ? (bool) $data['notify'] : null,
-            notify_minutes_before: isset($data['notify_minutes_before']) ? (int) $data['notify_minutes_before'] : null,
+            notify_at_datetime: isset($data['notify_at_datetime']) ? (string) $data['notify_at_datetime'] : null,
         );
     }
 
@@ -69,7 +69,7 @@ final readonly class TaskData
                 'priority' => $this->priority,
                 'status' => $this->status,
                 'notify' => $this->notify,
-                'notify_minutes_before' => $this->notify_minutes_before,
+                'notify_at_datetime' => $this->notify_at_datetime,
             ],
             static fn (mixed $value): bool => $value !== null,
         );
