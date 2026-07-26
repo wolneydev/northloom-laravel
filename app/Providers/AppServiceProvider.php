@@ -2,12 +2,20 @@
 
 namespace App\Providers;
 
+use App\Domain\Financials\Contracts\UnitOfWorkInterface;
+use App\Domain\Financials\Repositories\CostRepositoryInterface;
+use App\Domain\Financials\Repositories\FinancialAllocationRepositoryInterface;
+use App\Domain\Financials\Repositories\FundRepositoryInterface;
 use App\Domain\Notifications\Contracts\TelegramNotificationServiceInterface;
 use App\Domain\Projects\Repositories\ProjectRepositoryInterface;
 use App\Domain\Tasks\Repositories\TaskRepositoryInterface;
 use App\Domain\Users\Repositories\UserRepositoryInterface;
+use App\Infrastructure\Persistence\Eloquent\EloquentCostRepository;
+use App\Infrastructure\Persistence\Eloquent\EloquentFinancialAllocationRepository;
+use App\Infrastructure\Persistence\Eloquent\EloquentFundRepository;
 use App\Infrastructure\Persistence\Eloquent\EloquentProjectRepository;
 use App\Infrastructure\Persistence\Eloquent\EloquentTaskRepository;
+use App\Infrastructure\Persistence\Eloquent\EloquentUnitOfWork;
 use App\Infrastructure\Persistence\Eloquent\EloquentUserRepository;
 use App\Infrastructure\Telegram\TelegramNotificationService;
 use App\Models\Project;
@@ -29,6 +37,10 @@ class AppServiceProvider extends ServiceProvider
         UserRepositoryInterface::class => EloquentUserRepository::class,
         ProjectRepositoryInterface::class => EloquentProjectRepository::class,
         TaskRepositoryInterface::class => EloquentTaskRepository::class,
+        FundRepositoryInterface::class => EloquentFundRepository::class,
+        CostRepositoryInterface::class => EloquentCostRepository::class,
+        FinancialAllocationRepositoryInterface::class => EloquentFinancialAllocationRepository::class,
+        UnitOfWorkInterface::class => EloquentUnitOfWork::class,
         TelegramNotificationServiceInterface::class => TelegramNotificationService::class,
     ];
 

@@ -15,6 +15,7 @@ final readonly class ProjectData
     public function __construct(
         public ?int $user_id = null,
         public ?string $name = null,
+        public ?string $currency = null,
         public ?string $starts_on = null,
         public ?string $expected_ends_on = null,
         public ?string $notes = null,
@@ -28,6 +29,7 @@ final readonly class ProjectData
         return new self(
             user_id: isset($data['user_id']) ? (int) $data['user_id'] : null,
             name: isset($data['name']) ? (string) $data['name'] : null,
+            currency: isset($data['currency']) ? strtoupper((string) $data['currency']) : null,
             starts_on: isset($data['starts_on']) ? (string) $data['starts_on'] : null,
             expected_ends_on: isset($data['expected_ends_on']) ? (string) $data['expected_ends_on'] : null,
             notes: isset($data['notes']) ? (string) $data['notes'] : null,
@@ -46,6 +48,7 @@ final readonly class ProjectData
             [
                 'user_id' => $this->user_id,
                 'name' => $this->name,
+                'currency' => $this->currency,
                 'starts_on' => $this->starts_on,
                 'expected_ends_on' => $this->expected_ends_on,
                 'notes' => $this->notes,

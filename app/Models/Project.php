@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  *
  * @property int $user_id
  */
-#[Fillable(['user_id', 'name', 'starts_on', 'expected_ends_on', 'notes'])]
+#[Fillable(['user_id', 'name', 'currency', 'starts_on', 'expected_ends_on', 'notes'])]
 class Project extends Model
 {
     /** @use HasFactory<ProjectFactory> */
@@ -47,5 +47,15 @@ class Project extends Model
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
+    }
+
+    public function funds(): HasMany
+    {
+        return $this->hasMany(Fund::class);
+    }
+
+    public function costs(): HasMany
+    {
+        return $this->hasMany(Cost::class);
     }
 }

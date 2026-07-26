@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Projects\Services;
 
 use App\Domain\Projects\DTOs\ProjectData;
+use App\Domain\Projects\Exceptions\ProjectCurrencyImmutableException;
 use App\Domain\Projects\Repositories\ProjectRepositoryInterface;
 use App\Models\Project;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -36,6 +37,15 @@ final readonly class ProjectService
 
     public function update(Project $project, ProjectData $data): Project
     {
+        if (
+            $data->currency !== null
+            && $project->currency !== null
+            && $data->currency !== $project->currency
+            && ($project->funds()->exists() || $project->costs()->exists())
+        ) {
+            throw new ProjectCurrencyImmutableException;
+        }
+
         return $this->projects->update($project, $data);
     }
 
