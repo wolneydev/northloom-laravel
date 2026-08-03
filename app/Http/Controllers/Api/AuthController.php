@@ -11,6 +11,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use OpenApi\Attributes as OA;
 
 /**
  * Handles credential exchange for the API.
@@ -20,6 +21,27 @@ use Illuminate\Validation\ValidationException;
  */
 final class AuthController extends Controller
 {
+    #[OA\Post(
+        path: '/login',
+        summary: 'Log in and obtain an access token',
+        tags: ['Auth'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/LoginRequest'),
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Authenticated successfully',
+                content: new OA\JsonContent(ref: '#/components/schemas/LoginResponse'),
+            ),
+            new OA\Response(
+                response: 422,
+                description: 'Invalid credentials or validation error',
+                content: new OA\JsonContent(ref: '#/components/schemas/ValidationErrorResponse'),
+            ),
+        ],
+    )]
     /**
      * @throws ValidationException
      */
@@ -45,6 +67,20 @@ final class AuthController extends Controller
         ]);
     }
 
+    #[OA\Post(
+        path: '/logout',
+        summary: 'Revoke the current access token',
+        security: [['bearerAuth' => []]],
+        tags: ['Auth'],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Logged out successfully',
+                content: new OA\JsonContent(ref: '#/components/schemas/MessageResponse'),
+            ),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
+        ],
+    )]
     public function logout(): JsonResponse
     {
         /** @var User $user */
