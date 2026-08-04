@@ -29,6 +29,72 @@ In addition, [Laracasts](https://laracasts.com) contains thousands of video tuto
 
 You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
 
+## About This Project
+
+Hospitable is a Laravel API for managing projects, calendar tasks, funds, costs, and financial allocations, with Telegram reminders and aggregated reporting. API authentication uses [Laravel Passport](https://laravel.com/docs/passport) (Bearer tokens).
+
+## Features
+
+### REST API & Swagger Documentation
+
+The application exposes a JSON REST API (`routes/api.php`) covering:
+
+- Auth (login/logout via Passport) and user sign-up
+- Projects and calendar Tasks (CRUD)
+- Project Funds and Costs
+- Task financial allocations
+- Aggregated Reports (projects/tasks)
+- Telegram notification preferences
+
+Interactive OpenAPI/Swagger documentation is generated with [`darkaonline/l5-swagger`](https://github.com/DarkaOnLine/L5-Swagger) from PHP attributes on the controllers (`app/Http/Controllers/Api/*`) and reusable schemas in `app/OpenApi/Schemas.php`.
+
+- UI: `/api/documentation`
+- Regenerate spec: `php artisan l5-swagger:generate` (output in `storage/api-docs/`)
+
+### MCP Server (Model Context Protocol)
+
+A native MCP server, built with the official [`laravel/mcp`](https://github.com/laravel/mcp) package, exposes the app's core domain actions as tools for AI agents/LLM clients.
+
+- Server class: `app/Mcp/Servers/HospitableServer.php`
+- Tools: `app/Mcp/Tools/`
+- Registered in `routes/ai.php` (stdio transport, handle `hospitable`)
+
+**Authentication:** the MCP server has no login/sign-up flow of its own. Every tool call acts on behalf of a fixed service account, resolved from `USER_LOGIN` / `PASSWORD_USER` in `.env` via `App\Mcp\Concerns\AuthenticatesMcpUser`. This is independent of the API's Passport-based authentication.
+
+**Available tools:**
+
+| Tool | Description |
+|---|---|
+| `StoreProjectTool` | Create a project |
+| `UpdateProjectTool` | Update a project |
+| `StoreTaskTool` | Create a calendar task |
+| `UpdateTaskTool` | Update a calendar task |
+| `StoreFundTool` | Create a project fund |
+| `StoreCostTool` | Create a project cost |
+| `StoreFinancialAllocationTool` | Allocate fund money to a task |
+| `UpdateTelegramSettingsTool` | Update Telegram notification preferences |
+| `GetProjectReportTool` | Aggregated projects/tasks report |
+
+**Running the server:**
+
+```bash
+php artisan mcp:start hospitable   # stdio transport
+php artisan mcp:inspector          # interactive debugging
+```
+
+To connect an MCP-capable client (e.g. Claude Code) running on the host against the containerized app, register it in `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "hospitable": {
+      "command": "docker",
+      "args": ["compose", "exec", "-T", "app", "php", "artisan", "mcp:start", "hospitable"]
+    }
+  }
+}
+```
+
 ## Agentic Development
 
 Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
