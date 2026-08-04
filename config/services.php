@@ -39,4 +39,18 @@ return [
         'bot_token' => env('TELEGRAM_BOT_TOKEN'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | MCP Service Account
+    |--------------------------------------------------------------------------
+    |
+    | The MCP server has no login/sign-up flow of its own. Every tool acts on
+    | behalf of this fixed user, resolved from the credentials below.
+    |
+    */
+    'mcp' => [
+        'user_login' => env('USER_LOGIN'),
+        'user_password' => env('PASSWORD_USER'),
+    ],
+
 ];

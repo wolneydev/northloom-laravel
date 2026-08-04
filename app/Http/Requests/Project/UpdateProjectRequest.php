@@ -7,6 +7,7 @@ namespace App\Http\Requests\Project;
 use App\Domain\Projects\DTOs\ProjectData;
 use App\Models\Project;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateProjectRequest extends FormRequest
 {
@@ -22,6 +23,7 @@ class UpdateProjectRequest extends FormRequest
     {
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'currency' => ['sometimes', 'required', 'string', 'size:3', Rule::in(config('financial.currencies'))],
             'starts_on' => ['sometimes', 'required', 'date'],
             'expected_ends_on' => ['sometimes', 'required', 'date', 'after_or_equal:starts_on'],
             'notes' => ['nullable', 'string'],
@@ -34,6 +36,10 @@ class UpdateProjectRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
+        if ($this->has('currency') && is_string($this->input('currency'))) {
+            $this->merge(['currency' => strtoupper(trim($this->string('currency')->toString()))]);
+        }
+
         $project = $this->route('project');
 
         if (! $project instanceof Project) {

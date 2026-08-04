@@ -12,12 +12,16 @@ use App\Http\Resources\UserResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use OpenApi\Attributes as OA;
 
 /**
  * Thin HTTP boundary for the user resource.
  *
  * Validation lives in form requests, business rules in the service, and
  * serialization in the resource. The controller only wires them together.
+ *
+ * Only `store` (sign-up) is routed publicly; index/show/update/destroy exist
+ * for completeness but are not exposed via routes/api.php.
  */
 final class UserController extends Controller
 {
@@ -34,6 +38,27 @@ final class UserController extends Controller
         return UserResource::collection($users)->response();
     }
 
+    #[OA\Post(
+        path: '/users',
+        summary: 'Sign up a new user',
+        tags: ['Users'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/StoreUserRequest'),
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'User created',
+                content: new OA\JsonContent(ref: '#/components/schemas/User'),
+            ),
+            new OA\Response(
+                response: 422,
+                description: 'Validation error',
+                content: new OA\JsonContent(ref: '#/components/schemas/ValidationErrorResponse'),
+            ),
+        ],
+    )]
     public function store(StoreUserRequest $request): JsonResponse
     {
         $user = $this->users->create($request->toData());

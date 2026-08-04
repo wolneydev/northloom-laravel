@@ -21,6 +21,7 @@ class ProjectResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'currency' => $this->currency,
             'starts_on' => $this->starts_on?->toDateString(),
             'expected_ends_on' => $this->expected_ends_on?->toDateString(),
             'notes' => $this->notes,

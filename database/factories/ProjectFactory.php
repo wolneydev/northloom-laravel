@@ -23,6 +23,7 @@ class ProjectFactory extends Factory
         return [
             'user_id' => User::factory(),
             'name' => fake()->sentence(3),
+            'currency' => 'BRL',
             'starts_on' => $startsOn->format('Y-m-d'),
             'expected_ends_on' => fake()->dateTimeBetween($startsOn, '+2 months')->format('Y-m-d'),
             'notes' => fake()->optional()->paragraph(),

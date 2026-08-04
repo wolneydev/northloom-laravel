@@ -14,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
+use OpenApi\Attributes as OA;
 
 /**
  * Thin HTTP boundary for the project resource.
@@ -27,6 +28,27 @@ final class ProjectController extends Controller
         private readonly ProjectService $projects,
     ) {}
 
+    #[OA\Get(
+        path: '/projects',
+        summary: 'List projects owned by the authenticated user',
+        security: [['bearerAuth' => []]],
+        tags: ['Projects'],
+        parameters: [
+            new OA\Parameter(name: 'per_page', in: 'query', description: 'Items per page', schema: new OA\Schema(type: 'integer', default: 15)),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Paginated list of projects',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/Project')),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
+        ],
+    )]
     public function index(Request $request): JsonResponse
     {
         $perPage = (int) $request->integer('per_page', 15);
@@ -36,6 +58,29 @@ final class ProjectController extends Controller
         return ProjectResource::collection($projects)->response();
     }
 
+    #[OA\Post(
+        path: '/projects',
+        summary: 'Create a project',
+        security: [['bearerAuth' => []]],
+        tags: ['Projects'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/StoreProjectRequest'),
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Project created',
+                content: new OA\JsonContent(properties: [new OA\Property(property: 'data', ref: '#/components/schemas/Project')]),
+            ),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
+            new OA\Response(
+                response: 422,
+                description: 'Validation error',
+                content: new OA\JsonContent(ref: '#/components/schemas/ValidationErrorResponse'),
+            ),
+        ],
+    )]
     public function store(StoreProjectRequest $request): JsonResponse
     {
         $project = $this->projects->create($request->toData());
@@ -45,6 +90,25 @@ final class ProjectController extends Controller
             ->setStatusCode(Response::HTTP_CREATED);
     }
 
+    #[OA\Get(
+        path: '/projects/{project}',
+        summary: 'Show a project',
+        security: [['bearerAuth' => []]],
+        tags: ['Projects'],
+        parameters: [
+            new OA\Parameter(name: 'project', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Project details',
+                content: new OA\JsonContent(properties: [new OA\Property(property: 'data', ref: '#/components/schemas/Project')]),
+            ),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
+            new OA\Response(response: 403, description: 'Forbidden — not the project owner'),
+            new OA\Response(response: 404, description: 'Project not found'),
+        ],
+    )]
     public function show(Project $project): JsonResponse
     {
         Gate::authorize('view', $project);
@@ -52,6 +116,62 @@ final class ProjectController extends Controller
         return ProjectResource::make($project)->response();
     }
 
+    #[OA\Put(
+        path: '/projects/{project}',
+        summary: 'Update a project',
+        security: [['bearerAuth' => []]],
+        tags: ['Projects'],
+        parameters: [
+            new OA\Parameter(name: 'project', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/UpdateProjectRequest'),
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Project updated',
+                content: new OA\JsonContent(properties: [new OA\Property(property: 'data', ref: '#/components/schemas/Project')]),
+            ),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
+            new OA\Response(response: 403, description: 'Forbidden — not the project owner'),
+            new OA\Response(response: 404, description: 'Project not found'),
+            new OA\Response(
+                response: 422,
+                description: 'Validation error',
+                content: new OA\JsonContent(ref: '#/components/schemas/ValidationErrorResponse'),
+            ),
+        ],
+    )]
+    #[OA\Patch(
+        path: '/projects/{project}',
+        summary: 'Partially update a project',
+        security: [['bearerAuth' => []]],
+        tags: ['Projects'],
+        parameters: [
+            new OA\Parameter(name: 'project', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/UpdateProjectRequest'),
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Project updated',
+                content: new OA\JsonContent(properties: [new OA\Property(property: 'data', ref: '#/components/schemas/Project')]),
+            ),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
+            new OA\Response(response: 403, description: 'Forbidden — not the project owner'),
+            new OA\Response(response: 404, description: 'Project not found'),
+            new OA\Response(
+                response: 422,
+                description: 'Validation error',
+                content: new OA\JsonContent(ref: '#/components/schemas/ValidationErrorResponse'),
+            ),
+        ],
+    )]
     public function update(UpdateProjectRequest $request, Project $project): JsonResponse
     {
         Gate::authorize('update', $project);
@@ -61,6 +181,21 @@ final class ProjectController extends Controller
         return ProjectResource::make($updatedProject)->response();
     }
 
+    #[OA\Delete(
+        path: '/projects/{project}',
+        summary: 'Delete a project',
+        security: [['bearerAuth' => []]],
+        tags: ['Projects'],
+        parameters: [
+            new OA\Parameter(name: 'project', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 204, description: 'Project deleted'),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
+            new OA\Response(response: 403, description: 'Forbidden — not the project owner'),
+            new OA\Response(response: 404, description: 'Project not found'),
+        ],
+    )]
     public function destroy(Project $project): JsonResponse
     {
         Gate::authorize('delete', $project);

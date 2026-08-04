@@ -1,5 +1,7 @@
 .git
 .gitignore
+.dockerignore
+Dockerfile*
 .env
 .env.*
 !.env.example
@@ -13,6 +15,8 @@ storage/framework/views/*
 public/storage
 npm-debug.log
 yarn-error.log
+*.log*
+coverage
 docker-compose.override.yml
 .idea
 .vscode

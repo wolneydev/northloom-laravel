@@ -747,4 +747,74 @@ php artisan test
 | Como o JSON de saída é montado | `app/Http/Resources/**` |
 | Regras de "quem pode acessar" | `app/Policies/**` |
 | Esquema do banco e índices | `database/migrations/**` |
+
+---
+
+## 8. Módulo Financials e Unit of Work
+
+O contexto `app/Domain/Financials` segue o mesmo fluxo das demais áreas:
+
+```text
+Route + Passport
+  → FormRequest (validação + DTO)
+  → Controller (autoriza Project ou Task)
+  → Financial Service
+  → RepositoryInterface / UnitOfWorkInterface
+  ← EloquentRepository / EloquentUnitOfWork
+  → Model
+  → API Resource
 ```
+
+### Responsabilidades
+
+| Componente | Responsabilidade |
+| --- | --- |
+| `Money` | Converte strings decimais em unidades inteiras e impede aritmética com float |
+| `ProjectService` | Impede a troca de moeda depois do início da atividade financeira |
+| `FundService` | Lista e cria fundos somente em projetos com moeda configurada |
+| `CostService` | Lista e registra custos em projetos com moeda, sem debitar fundos |
+| `FinancialAllocationService` | Orquestra as invariantes e a alocação atômica |
+| `UnitOfWorkInterface` | Contrato de transação conhecido pelo Domain |
+| `EloquentUnitOfWork` | Implementa o contrato com uma transação do banco |
+| `EloquentFundRepository` | Bloqueia o fundo e executa o débito condicional |
+
+### Fluxo atômico da alocação
+
+`FinancialAllocationService` abre a Unit of Work e carrega o fundo com
+`lockForUpdate()`. Ainda dentro da transação, valida:
+
+1. o usuário autenticado é dono da tarefa e do fundo;
+2. o fundo pertence ao mesmo projeto da tarefa;
+3. o projeto possui uma moeda configurada;
+4. o saldo disponível cobre o valor solicitado.
+
+Em seguida cria `FinancialAllocation` e executa um `UPDATE` condicionado a
+`available_balance >= amount`. Se o update não afetar exatamente uma linha, ou qualquer
+outra etapa lançar exceção, a transação é revertida. No PostgreSQL, o bloqueio de linha
+serializa alocações concorrentes; o update condicionado funciona como defesa adicional
+contra saldo negativo.
+
+### Ciclo de vida da moeda do projeto
+
+`projects.currency` guarda um código ISO 4217 em maiúsculas. Projetos novos devem enviar
+uma moeda presente em `config/financial.php` (`FINANCIAL_CURRENCIES`). O campo permanece
+nullable apenas para compatibilidade com projetos anteriores à migration; esses projetos
+podem ser consultados e atualizados, mas não podem criar fundos, custos ou alocações até
+o dono configurar a moeda. Depois que existir fundo ou custo, `ProjectService` rejeita
+trocas de moeda. Os recursos financeiros derivam e expõem a moeda do projeto, sem
+duplicá-la nas tabelas financeiras.
+
+### Mapa do módulo
+
+| Área | Arquivos |
+| --- | --- |
+| Domínio | `app/Domain/Financials/{Contracts,DTOs,Exceptions,Repositories,Services,ValueObjects}` |
+| Persistência | `app/Infrastructure/Persistence/Eloquent/Eloquent{Fund,Cost,FinancialAllocation}Repository.php` |
+| Unit of Work | `app/Infrastructure/Persistence/Eloquent/EloquentUnitOfWork.php` |
+| HTTP | `app/Http/Controllers/Api/Project{Fund,Cost}Controller.php`, `TaskFinancialAllocationController.php` |
+| Validação | `app/Http/Requests/Financials/**` |
+| Serialização | `app/Http/Resources/{Project,Fund,Cost,FinancialAllocation}Resource.php` |
+| Entidades | `app/Models/{Project,Fund,Cost,FinancialAllocation}.php` |
+| Configuração | `config/financial.php` |
+| Esquema | `database/migrations/*_add_currency_to_projects_table.php`, `database/migrations/*_{funds,costs,financial_allocations}_table.php` |
+| Testes | `tests/Feature/{Project,Fund,Cost,FinancialAllocation}Test.php`, `tests/Unit/Domain/Projects/ProjectServiceTest.php`, `tests/Integration/FinancialAllocationConcurrencyTest.php` |

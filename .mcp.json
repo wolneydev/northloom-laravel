@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "hospitable": {
+      "command": "docker",
+      "args": ["compose", "exec", "-T", "app", "php", "artisan", "mcp:start", "hospitable"]
+    }
+  }
+}

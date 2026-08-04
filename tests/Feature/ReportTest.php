@@ -100,6 +100,7 @@ class ReportTest extends TestCase
         $response->assertOk()
             ->assertJsonCount(1, 'data.projects')
             ->assertJsonPath('data.projects.0.name', 'Project with completed task')
+            ->assertJsonPath('data.projects.0.currency', 'BRL')
             ->assertJsonPath('data.projects.0.tasks_count', 1)
             ->assertJsonPath('data.projects.0.status_counts.completed', 1)
             ->assertJsonPath('data.projects.0.status_counts.pending', 1)
