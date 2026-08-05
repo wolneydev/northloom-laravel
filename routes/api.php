@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ChatController;
+use App\Http\Controllers\Api\ConversationController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\ProjectCostController;
 use App\Http\Controllers\Api\ProjectFundController;
@@ -30,6 +32,13 @@ Route::middleware('auth:api')->group(function (): void {
     Route::get('me/telegram', [TelegramSettingsController::class, 'show']);
     Route::put('me/telegram', [TelegramSettingsController::class, 'update']);
     Route::post('me/telegram/test', [TelegramSettingsController::class, 'test']);
+
+    // AI chat backed by the local Hospitable MCP server tools.
+    Route::post('chat', [ChatController::class, 'store']);
+
+    // Conversation history for the authenticated user, with the agent that handled each.
+    Route::get('conversations', [ConversationController::class, 'index']);
+    Route::get('conversations/{id}', [ConversationController::class, 'show']);
 
     // Report query params:
     // - report_type: projects, tasks, or both
