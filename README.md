@@ -59,6 +59,12 @@ A native MCP server, built with the official [`laravel/mcp`](https://github.com/
 - Tools: `app/Mcp/Tools/`
 - Registered in `routes/ai.php` (stdio transport, handle `hospitable`)
 
+**Chat HTTP API:** authenticated users can talk to these tools via `POST /api/chat`
+(`App\Ai\Agents\HospitableChatAgent` + `laravel/ai`). The agent connects to this
+same local MCP handle and uses **local Ollama only** (see `config/ai.php`).
+Set `OLLAMA_URL` / `AI_MODEL` in `.env`, then run migrations so conversation
+tables exist.
+
 **Authentication:** the MCP server has no login/sign-up flow of its own. Every tool call acts on behalf of a fixed service account, resolved from `USER_LOGIN` / `PASSWORD_USER` in `.env` via `App\Mcp\Concerns\AuthenticatesMcpUser`. This is independent of the API's Passport-based authentication.
 
 **Available tools:**

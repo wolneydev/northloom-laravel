@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Ai\Concerns\HasConversations;
 use Laravel\Passport\HasApiTokens;
 
 #[Fillable(['name', 'email', 'password', 'telegram_chat_id', 'telegram_notifications_enabled'])]
@@ -17,7 +18,7 @@ use Laravel\Passport\HasApiTokens;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasConversations, HasFactory, Notifiable;
 
     /**
      * Get the attributes that should be cast.

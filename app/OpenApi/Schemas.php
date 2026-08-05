@@ -257,6 +257,55 @@ use OpenApi\Attributes as OA;
     ],
 )]
 #[OA\Schema(
+    schema: 'Conversation',
+    type: 'object',
+    properties: [
+        new OA\Property(property: 'id', type: 'string', format: 'uuid', example: '9c6b3e2a-2b7a-4e2a-8f2a-2b7a4e2a8f2a'),
+        new OA\Property(property: 'title', type: 'string', example: 'Criação do projeto ERP'),
+        new OA\Property(property: 'agent', type: 'string', nullable: true, description: 'Classe do agente que respondeu à última mensagem da conversa.', example: 'App\\Ai\\Agents\\HospitableChatAgent'),
+        new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
+        new OA\Property(property: 'updated_at', type: 'string', format: 'date-time'),
+    ],
+)]
+#[OA\Schema(
+    schema: 'ConversationMessage',
+    type: 'object',
+    properties: [
+        new OA\Property(property: 'id', type: 'string', format: 'uuid'),
+        new OA\Property(property: 'role', type: 'string', example: 'user'),
+        new OA\Property(property: 'content', type: 'string'),
+        new OA\Property(
+            property: 'tool_calls',
+            type: 'array',
+            items: new OA\Items(
+                properties: [
+                    new OA\Property(property: 'id', type: 'string'),
+                    new OA\Property(property: 'name', type: 'string'),
+                    new OA\Property(property: 'arguments', type: 'object'),
+                ],
+                type: 'object',
+            ),
+        ),
+        new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
+    ],
+)]
+#[OA\Schema(
+    schema: 'ConversationDetail',
+    type: 'object',
+    allOf: [
+        new OA\Schema(ref: '#/components/schemas/Conversation'),
+        new OA\Schema(
+            properties: [
+                new OA\Property(
+                    property: 'messages',
+                    type: 'array',
+                    items: new OA\Items(ref: '#/components/schemas/ConversationMessage'),
+                ),
+            ],
+        ),
+    ],
+)]
+#[OA\Schema(
     schema: 'ReportFilters',
     type: 'object',
     properties: [
