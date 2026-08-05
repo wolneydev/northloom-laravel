@@ -35,6 +35,53 @@ Hospitable is a Laravel API for managing projects, calendar tasks, funds, costs,
 
 ## Features
 
+### Architecture Overview: REST API vs. MCP
+
+Both entry points are thin adapters over the same domain services — no business
+logic is duplicated between them.
+
+```mermaid
+flowchart TD
+    subgraph Clients["Clients"]
+        HTTP["HTTP client\n(frontend, Postman, ...)"]
+        ChatUser["User via chat\nPOST /api/chat"]
+        MCPClient["External MCP/LLM client\n(e.g. Claude Code, stdio)"]
+    end
+
+    subgraph RestAuth["REST API"]
+        Passport{{"Passport\nauth:api (per-user Bearer token)"}}
+        Controllers["Api Controllers\nProjects · Tasks · Funds · Costs\nAllocations · Reports · Telegram · Conversations"]
+    end
+
+    subgraph ChatLayer["Chat / AI Agent"]
+        ChatController["ChatController"]
+        Agent["HospitableChatAgent\n(local Ollama LLM)"]
+    end
+
+    subgraph McpLayer["MCP Server (stdio)"]
+        McpAuth{{"AuthenticatesMcpUser\nfixed service account\n(USER_LOGIN / PASSWORD_USER)"}}
+        Tools["HospitableServer Tools\nStoreProject · UpdateProject · StoreTask · UpdateTask\nStoreFund · StoreCost · StoreFinancialAllocation\nUpdateTelegramSettings · GetProjectReport"]
+    end
+
+    Domain["Domain Services\n(App/Domain/*/Services)"]
+    DB[("PostgreSQL")]
+
+    HTTP --> Passport --> Controllers
+    ChatUser --> ChatController --> Agent
+    Agent -- "local MCP client (tools())" --> McpAuth
+    MCPClient -- "stdio" --> McpAuth
+    McpAuth --> Tools
+
+    Controllers --> Domain
+    Tools --> Domain
+    Domain --> DB
+```
+
+Key takeaway: the REST API authenticates each request as the calling user
+(Passport), while the MCP server always acts as one fixed service account —
+this is why `/api/chat` and external MCP clients see the same data regardless
+of who is logged in via the browser.
+
 ### REST API & Swagger Documentation
 
 The application exposes a JSON REST API (`routes/api.php`) covering:
