@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\ConversationController;
+use App\Http\Controllers\Api\CreationIdeaController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\ProjectCostController;
 use App\Http\Controllers\Api\ProjectFundController;
@@ -46,6 +47,13 @@ Route::middleware('auth:api')->group(function (): void {
     // - start_date/end_date: optional YYYY-MM-DD range
     // JSON response: { data: { filters: {...}, projects?: [...], tasks?: [...] } }.
     Route::get('reports', [ReportController::class, 'show']);
+
+    // Creation idea query params:
+    // - target: project or task
+    // - project_id: required when target is task; must be owned by the caller
+    // - at: optional datetime override (app timezone is America/Sao_Paulo)
+    // JSON response: { data: { target, headline, suggestion, field_hints, context } }.
+    Route::get('creation-ideas', [CreationIdeaController::class, 'show']);
 
     // Project planning and calendar tasks, all scoped to the authenticated user.
     Route::apiResource('projects', ProjectController::class);

@@ -22,7 +22,8 @@ class StoreProjectRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'currency' => ['required', 'string', 'size:3', Rule::in(config('financial.currencies'))],
+            'currency' => ['nullable', 'string', 'size:3', Rule::in(config('financial.currencies'))],
+            'hours' => ['nullable', 'numeric', 'min:0', 'decimal:0,2', 'max:999999.99'],
             'starts_on' => ['required', 'date'],
             'expected_ends_on' => ['required', 'date', 'after_or_equal:starts_on'],
             'notes' => ['nullable', 'string'],
@@ -40,8 +41,6 @@ class StoreProjectRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if ($this->has('currency') && is_string($this->input('currency'))) {
-            $this->merge(['currency' => strtoupper(trim($this->string('currency')->toString()))]);
-        }
+        ProjectAttributePreparer::merge($this);
     }
 }

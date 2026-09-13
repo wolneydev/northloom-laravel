@@ -60,7 +60,8 @@ use OpenApi\Attributes as OA;
     properties: [
         new OA\Property(property: 'id', type: 'integer', example: 1),
         new OA\Property(property: 'name', type: 'string', example: 'Reforma da Cozinha'),
-        new OA\Property(property: 'currency', type: 'string', example: 'BRL'),
+        new OA\Property(property: 'currency', type: 'string', nullable: true, example: 'BRL'),
+        new OA\Property(property: 'hours', type: 'string', nullable: true, example: '40.00'),
         new OA\Property(property: 'starts_on', type: 'string', format: 'date', example: '2026-08-01'),
         new OA\Property(property: 'expected_ends_on', type: 'string', format: 'date', example: '2026-12-01'),
         new OA\Property(property: 'notes', type: 'string', nullable: true, example: 'Projeto piloto'),
@@ -69,10 +70,11 @@ use OpenApi\Attributes as OA;
 #[OA\Schema(
     schema: 'StoreProjectRequest',
     type: 'object',
-    required: ['name', 'currency', 'starts_on', 'expected_ends_on'],
+    required: ['name', 'starts_on', 'expected_ends_on'],
     properties: [
         new OA\Property(property: 'name', type: 'string', maxLength: 255, example: 'Reforma da Cozinha'),
-        new OA\Property(property: 'currency', type: 'string', minLength: 3, maxLength: 3, example: 'BRL', description: 'Código ISO da moeda; deve estar entre as moedas configuradas em financial.currencies.'),
+        new OA\Property(property: 'currency', type: 'string', nullable: true, minLength: 3, maxLength: 3, example: 'BRL', description: 'Código ISO da moeda; opcional. Se enviado, deve estar entre as moedas configuradas em financial.currencies.'),
+        new OA\Property(property: 'hours', type: 'number', nullable: true, minimum: 0, example: 40, description: 'Estimativa opcional de horas do projeto, até 2 casas decimais.'),
         new OA\Property(property: 'starts_on', type: 'string', format: 'date', example: '2026-08-01'),
         new OA\Property(property: 'expected_ends_on', type: 'string', format: 'date', example: '2026-12-01', description: 'Deve ser igual ou posterior a starts_on.'),
         new OA\Property(property: 'notes', type: 'string', nullable: true, example: 'Projeto piloto'),
@@ -83,7 +85,8 @@ use OpenApi\Attributes as OA;
     type: 'object',
     properties: [
         new OA\Property(property: 'name', type: 'string', maxLength: 255, example: 'Reforma da Cozinha'),
-        new OA\Property(property: 'currency', type: 'string', minLength: 3, maxLength: 3, example: 'BRL'),
+        new OA\Property(property: 'currency', type: 'string', nullable: true, minLength: 3, maxLength: 3, example: 'BRL'),
+        new OA\Property(property: 'hours', type: 'number', nullable: true, minimum: 0, example: 40),
         new OA\Property(property: 'starts_on', type: 'string', format: 'date', example: '2026-08-01'),
         new OA\Property(property: 'expected_ends_on', type: 'string', format: 'date', example: '2026-12-01'),
         new OA\Property(property: 'notes', type: 'string', nullable: true, example: 'Projeto piloto'),
@@ -96,7 +99,8 @@ use OpenApi\Attributes as OA;
     properties: [
         new OA\Property(property: 'id', type: 'integer', example: 1),
         new OA\Property(property: 'name', type: 'string', example: 'Reforma da Cozinha'),
-        new OA\Property(property: 'currency', type: 'string', example: 'BRL'),
+        new OA\Property(property: 'currency', type: 'string', nullable: true, example: 'BRL'),
+        new OA\Property(property: 'hours', type: 'string', nullable: true, example: '40.00'),
         new OA\Property(property: 'starts_on', type: 'string', format: 'date'),
         new OA\Property(property: 'expected_ends_on', type: 'string', format: 'date'),
         new OA\Property(property: 'notes', type: 'string', nullable: true),
@@ -313,6 +317,48 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'status', type: 'string', enum: ['pending', 'in_progress', 'completed', 'cancelled'], nullable: true),
         new OA\Property(property: 'start_date', type: 'string', format: 'date', nullable: true),
         new OA\Property(property: 'end_date', type: 'string', format: 'date', nullable: true),
+    ],
+)]
+#[OA\Schema(
+    schema: 'CreationIdeaContext',
+    type: 'object',
+    properties: [
+        new OA\Property(property: 'country', type: 'string', example: 'BR'),
+        new OA\Property(property: 'timezone', type: 'string', example: 'America/Sao_Paulo'),
+        new OA\Property(property: 'local_date_time', type: 'string', format: 'date-time', example: '2026-09-13T21:30:00-03:00'),
+        new OA\Property(property: 'day_period', type: 'string', enum: ['morning', 'afternoon', 'night']),
+        new OA\Property(property: 'season', type: 'string', enum: ['summer', 'autumn', 'winter', 'spring']),
+        new OA\Property(property: 'weekday', type: 'string', example: 'sunday'),
+        new OA\Property(property: 'task_count_on_day', type: 'integer', example: 0),
+        new OA\Property(property: 'upcoming_task_count', type: 'integer', example: 0),
+        new OA\Property(property: 'lunar_phase', type: 'string', nullable: true),
+        new OA\Property(property: 'primary_mode', type: 'string', example: 'growth'),
+        new OA\Property(property: 'secondary_mode', type: 'string', example: 'imagination'),
+    ],
+)]
+#[OA\Schema(
+    schema: 'CreationIdea',
+    type: 'object',
+    properties: [
+        new OA\Property(property: 'target', type: 'string', enum: ['project', 'task']),
+        new OA\Property(property: 'headline', type: 'string', maxLength: 255),
+        new OA\Property(property: 'suggestion', type: 'string'),
+        new OA\Property(
+            property: 'field_hints',
+            type: 'object',
+            properties: [
+                new OA\Property(property: 'headline', type: 'string', enum: ['name', 'title']),
+                new OA\Property(property: 'suggestion', type: 'string', enum: ['notes']),
+            ],
+        ),
+        new OA\Property(property: 'context', ref: '#/components/schemas/CreationIdeaContext'),
+    ],
+)]
+#[OA\Schema(
+    schema: 'CreationIdeaResponse',
+    type: 'object',
+    properties: [
+        new OA\Property(property: 'data', ref: '#/components/schemas/CreationIdea'),
     ],
 )]
 #[OA\Schema(

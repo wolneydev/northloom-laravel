@@ -10,6 +10,7 @@ use App\Mcp\Tools\StoreFinancialAllocationTool;
 use App\Mcp\Tools\StoreFundTool;
 use App\Mcp\Tools\StoreProjectTool;
 use App\Mcp\Tools\StoreTaskTool;
+use App\Mcp\Tools\SuggestCreationIdeaTool;
 use App\Mcp\Tools\UpdateProjectTool;
 use App\Mcp\Tools\UpdateTaskTool;
 use App\Mcp\Tools\UpdateTelegramSettingsTool;
@@ -23,7 +24,10 @@ use Laravel\Mcp\Server\Tool;
 #[Version('0.2.0')]
 #[Instructions(<<<'MARKDOWN'
     Ferramentas para gerenciar projetos, tarefas, fundos, custos, alocações
-    financeiras, preferências de Telegram e relatórios da aplicação Hospitable.
+    financeiras, preferências de Telegram, relatórios e sugestões de criação
+    da aplicação Hospitable.
+
+    SuggestCreationIdeaTool apenas sugere texto; não cria projetos nem tarefas.
 
     Todas as ações são executadas em nome do usuário de serviço fixo
     configurado em USER_LOGIN/PASSWORD_USER (.env) — este servidor não
@@ -45,6 +49,7 @@ class HospitableServer extends Server
         StoreFinancialAllocationTool::class,
         UpdateTelegramSettingsTool::class,
         GetProjectReportTool::class,
+        SuggestCreationIdeaTool::class,
     ];
 
     protected array $resources = [];

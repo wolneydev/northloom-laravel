@@ -16,9 +16,11 @@ final readonly class ProjectData
         public ?int $user_id = null,
         public ?string $name = null,
         public ?string $currency = null,
+        public ?string $hours = null,
         public ?string $starts_on = null,
         public ?string $expected_ends_on = null,
         public ?string $notes = null,
+        public bool $hoursIsPresent = false,
     ) {}
 
     /**
@@ -26,25 +28,30 @@ final readonly class ProjectData
      */
     public static function fromArray(array $data): self
     {
+        $hoursIsPresent = array_key_exists('hours', $data);
+
         return new self(
             user_id: isset($data['user_id']) ? (int) $data['user_id'] : null,
             name: isset($data['name']) ? (string) $data['name'] : null,
             currency: isset($data['currency']) ? strtoupper((string) $data['currency']) : null,
+            hours: self::hoursFromInput($hoursIsPresent ? $data['hours'] : null),
             starts_on: isset($data['starts_on']) ? (string) $data['starts_on'] : null,
             expected_ends_on: isset($data['expected_ends_on']) ? (string) $data['expected_ends_on'] : null,
             notes: isset($data['notes']) ? (string) $data['notes'] : null,
+            hoursIsPresent: $hoursIsPresent,
         );
     }
 
     /**
      * Only the provided attributes are returned, so the same DTO works for
      * full creation and partial updates without overwriting untouched columns.
+     * Hours is an exception: an explicit null clears the stored estimate.
      *
      * @return array<string, mixed>
      */
     public function toArray(): array
     {
-        return array_filter(
+        $attributes = array_filter(
             [
                 'user_id' => $this->user_id,
                 'name' => $this->name,
@@ -55,5 +62,20 @@ final readonly class ProjectData
             ],
             static fn (mixed $value): bool => $value !== null,
         );
+
+        if ($this->hours !== null || $this->hoursIsPresent) {
+            $attributes['hours'] = $this->hours;
+        }
+
+        return $attributes;
+    }
+
+    private static function hoursFromInput(mixed $hours): ?string
+    {
+        if ($hours === null || $hours === '') {
+            return null;
+        }
+
+        return number_format((float) $hours, 2, '.', '');
     }
 }
