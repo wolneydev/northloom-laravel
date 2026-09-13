@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  *
  * @property int $user_id
  */
-#[Fillable(['user_id', 'name', 'currency', 'starts_on', 'expected_ends_on', 'notes'])]
+#[Fillable(['user_id', 'name', 'currency', 'hours', 'starts_on', 'expected_ends_on', 'notes'])]
 class Project extends Model
 {
     /** @use HasFactory<ProjectFactory> */
@@ -28,6 +28,7 @@ class Project extends Model
     protected function casts(): array
     {
         return [
+            'hours' => 'decimal:2',
             'starts_on' => 'date',
             'expected_ends_on' => 'date',
         ];

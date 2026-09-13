@@ -7,6 +7,7 @@ namespace App\Mcp\Tools;
 use App\Domain\Projects\DTOs\ProjectData;
 use App\Domain\Projects\Exceptions\ProjectCurrencyImmutableException;
 use App\Domain\Projects\Services\ProjectService;
+use App\Http\Requests\Project\ProjectAttributePreparer;
 use App\Mcp\Concerns\AuthenticatesMcpUser;
 use App\Models\Project;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
@@ -37,14 +38,13 @@ final class UpdateProjectTool extends Tool
     {
         $user = $this->resolveActingUser();
 
-        if ($request->get('currency') !== null) {
-            $request->merge(['currency' => strtoupper(trim((string) $request->get('currency')))]);
-        }
+        ProjectAttributePreparer::merge($request);
 
         $validated = $request->validate([
             'id' => ['required', 'integer', 'min:1'],
             'name' => ['sometimes', 'required', 'string', 'max:255'],
-            'currency' => ['sometimes', 'required', 'string', 'size:3', Rule::in(config('financial.currencies'))],
+            'currency' => ['sometimes', 'nullable', 'string', 'size:3', Rule::in(config('financial.currencies'))],
+            'hours' => ['sometimes', 'nullable', 'numeric', 'min:0', 'decimal:0,2', 'max:999999.99'],
             'starts_on' => ['sometimes', 'required', 'date'],
             'expected_ends_on' => ['sometimes', 'required', 'date', 'after_or_equal:starts_on'],
             'notes' => ['nullable', 'string'],
@@ -89,6 +89,7 @@ final class UpdateProjectTool extends Tool
             'id' => $updated->id,
             'name' => $updated->name,
             'currency' => $updated->currency,
+            'hours' => $updated->hours,
             'starts_on' => $updated->starts_on?->toDateString(),
             'expected_ends_on' => $updated->expected_ends_on?->toDateString(),
             'notes' => $updated->notes,
@@ -110,7 +111,12 @@ final class UpdateProjectTool extends Tool
             'currency' => $schema->string()
                 ->description('Novo código ISO da moeda (3 letras). Não pode mudar depois que o projeto tiver funds ou costs registrados.')
                 ->min(3)
-                ->max(3),
+                ->max(3)
+                ->nullable(),
+            'hours' => $schema->number()
+                ->description('Estimativa opcional de horas do projeto (não negativa, até 2 casas decimais). Envie null para limpar.')
+                ->min(0)
+                ->nullable(),
             'starts_on' => $schema->string()
                 ->description('Nova data de início, formato YYYY-MM-DD.'),
             'expected_ends_on' => $schema->string()
@@ -129,7 +135,8 @@ final class UpdateProjectTool extends Tool
         return [
             'id' => $schema->integer()->description('ID do projeto atualizado.'),
             'name' => $schema->string(),
-            'currency' => $schema->string(),
+            'currency' => $schema->string()->nullable(),
+            'hours' => $schema->string()->nullable(),
             'starts_on' => $schema->string(),
             'expected_ends_on' => $schema->string(),
             'notes' => $schema->string()->nullable(),
@@ -153,6 +160,9 @@ final class UpdateProjectTool extends Tool
             'currency.required' => 'O campo "currency" é obrigatório quando enviado.',
             'currency.size' => 'O campo "currency" deve ter exatamente 3 letras (código ISO), ex: BRL.',
             'currency.in' => 'O campo "currency" deve ser uma das moedas configuradas: '.implode(', ', config('financial.currencies')).'.',
+            'hours.numeric' => 'O campo "hours" deve ser um número.',
+            'hours.min' => 'O campo "hours" não pode ser negativo.',
+            'hours.decimal' => 'O campo "hours" deve ter no máximo 2 casas decimais.',
             'starts_on.required' => 'O campo "starts_on" é obrigatório quando enviado, no formato YYYY-MM-DD.',
             'starts_on.date' => 'O campo "starts_on" deve ser uma data válida, no formato YYYY-MM-DD.',
             'expected_ends_on.required' => 'O campo "expected_ends_on" é obrigatório quando enviado, no formato YYYY-MM-DD.',

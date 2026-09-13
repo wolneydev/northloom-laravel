@@ -6,6 +6,7 @@ namespace App\Mcp\Tools;
 
 use App\Domain\Projects\DTOs\ProjectData;
 use App\Domain\Projects\Services\ProjectService;
+use App\Http\Requests\Project\ProjectAttributePreparer;
 use App\Mcp\Concerns\AuthenticatesMcpUser;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Illuminate\Validation\Rule;
@@ -34,13 +35,12 @@ final class StoreProjectTool extends Tool
     {
         $user = $this->resolveActingUser();
 
-        if ($request->get('currency') !== null) {
-            $request->merge(['currency' => strtoupper(trim((string) $request->get('currency')))]);
-        }
+        ProjectAttributePreparer::merge($request);
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'currency' => ['required', 'string', 'size:3', Rule::in(config('financial.currencies'))],
+            'currency' => ['nullable', 'string', 'size:3', Rule::in(config('financial.currencies'))],
+            'hours' => ['nullable', 'numeric', 'min:0', 'decimal:0,2', 'max:999999.99'],
             'starts_on' => ['required', 'date'],
             'expected_ends_on' => ['required', 'date', 'after_or_equal:starts_on'],
             'notes' => ['nullable', 'string'],
@@ -54,6 +54,7 @@ final class StoreProjectTool extends Tool
             'id' => $project->id,
             'name' => $project->name,
             'currency' => $project->currency,
+            'hours' => $project->hours,
             'starts_on' => $project->starts_on?->toDateString(),
             'expected_ends_on' => $project->expected_ends_on?->toDateString(),
             'notes' => $project->notes,
@@ -71,10 +72,14 @@ final class StoreProjectTool extends Tool
                 ->max(255)
                 ->required(),
             'currency' => $schema->string()
-                ->description('Código ISO da moeda (3 letras), ex: BRL. Deve estar entre as moedas configuradas em financial.currencies.')
+                ->description('Código ISO da moeda (3 letras), ex: BRL. Opcional; se enviado, deve estar entre as moedas configuradas em financial.currencies.')
                 ->min(3)
                 ->max(3)
-                ->required(),
+                ->nullable(),
+            'hours' => $schema->number()
+                ->description('Estimativa opcional de horas do projeto (não negativa, até 2 casas decimais).')
+                ->min(0)
+                ->nullable(),
             'starts_on' => $schema->string()
                 ->description('Data de início do projeto, formato YYYY-MM-DD.')
                 ->required(),
@@ -95,7 +100,8 @@ final class StoreProjectTool extends Tool
         return [
             'id' => $schema->integer()->description('ID do projeto criado.'),
             'name' => $schema->string(),
-            'currency' => $schema->string(),
+            'currency' => $schema->string()->nullable(),
+            'hours' => $schema->string()->nullable(),
             'starts_on' => $schema->string(),
             'expected_ends_on' => $schema->string(),
             'notes' => $schema->string()->nullable(),
@@ -113,9 +119,11 @@ final class StoreProjectTool extends Tool
         return [
             'name.required' => 'O campo "name" é obrigatório.',
             'name.max' => 'O campo "name" deve ter no máximo 255 caracteres.',
-            'currency.required' => 'O campo "currency" é obrigatório.',
             'currency.size' => 'O campo "currency" deve ter exatamente 3 letras (código ISO), ex: BRL.',
             'currency.in' => 'O campo "currency" deve ser uma das moedas configuradas: '.implode(', ', config('financial.currencies')).'.',
+            'hours.numeric' => 'O campo "hours" deve ser um número.',
+            'hours.min' => 'O campo "hours" não pode ser negativo.',
+            'hours.decimal' => 'O campo "hours" deve ter no máximo 2 casas decimais.',
             'starts_on.required' => 'O campo "starts_on" é obrigatório, no formato YYYY-MM-DD.',
             'starts_on.date' => 'O campo "starts_on" deve ser uma data válida, no formato YYYY-MM-DD.',
             'expected_ends_on.required' => 'O campo "expected_ends_on" é obrigatório, no formato YYYY-MM-DD.',

@@ -86,6 +86,7 @@ final class GetProjectReportTool extends Tool
             'id' => $project->id,
             'name' => $project->name,
             'currency' => $project->currency,
+            'hours' => $project->hours,
             'starts_on' => $project->starts_on?->toDateString(),
             'expected_ends_on' => $project->expected_ends_on?->toDateString(),
             'notes' => $project->notes,

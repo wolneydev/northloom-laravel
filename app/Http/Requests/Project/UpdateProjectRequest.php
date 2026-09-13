@@ -23,7 +23,8 @@ class UpdateProjectRequest extends FormRequest
     {
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
-            'currency' => ['sometimes', 'required', 'string', 'size:3', Rule::in(config('financial.currencies'))],
+            'currency' => ['sometimes', 'nullable', 'string', 'size:3', Rule::in(config('financial.currencies'))],
+            'hours' => ['sometimes', 'nullable', 'numeric', 'min:0', 'decimal:0,2', 'max:999999.99'],
             'starts_on' => ['sometimes', 'required', 'date'],
             'expected_ends_on' => ['sometimes', 'required', 'date', 'after_or_equal:starts_on'],
             'notes' => ['nullable', 'string'],
@@ -36,9 +37,7 @@ class UpdateProjectRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
-        if ($this->has('currency') && is_string($this->input('currency'))) {
-            $this->merge(['currency' => strtoupper(trim($this->string('currency')->toString()))]);
-        }
+        ProjectAttributePreparer::merge($this);
 
         $project = $this->route('project');
 

@@ -53,7 +53,66 @@ class ProjectTest extends TestCase
         $response->assertStatus(422)->assertJsonValidationErrors('expected_ends_on');
     }
 
-    public function test_project_requires_a_supported_currency(): void
+    public function test_user_can_create_a_project_without_currency(): void
+    {
+        Passport::actingAs($user = User::factory()->create());
+
+        $response = $this->postJson('/api/projects', [
+            'name' => 'Projeto ERP',
+            'starts_on' => '2026-06-16',
+            'expected_ends_on' => '2026-07-30',
+            'notes' => null,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.name', 'Projeto ERP')
+            ->assertJsonPath('data.currency', null)
+            ->assertJsonPath('data.hours', null);
+
+        $this->assertDatabaseHas('projects', [
+            'name' => 'Projeto ERP',
+            'user_id' => $user->id,
+            'currency' => null,
+            'hours' => null,
+        ]);
+    }
+
+    public function test_project_rejects_unsupported_currency(): void
+    {
+        Passport::actingAs(User::factory()->create());
+
+        $this->postJson('/api/projects', [
+            'name' => 'Projeto',
+            'starts_on' => '2026-07-01',
+            'expected_ends_on' => '2026-07-30',
+            'currency' => 'ZZZ',
+        ])->assertUnprocessable()
+            ->assertJsonValidationErrors('currency');
+
+        $this->assertDatabaseCount('projects', 0);
+    }
+
+    public function test_user_can_create_a_project_with_hours(): void
+    {
+        Passport::actingAs(User::factory()->create());
+
+        $this->postJson('/api/projects', [
+            'name' => 'Projeto ERP',
+            'starts_on' => '2026-06-16',
+            'expected_ends_on' => '2026-07-30',
+            'hours' => 40,
+        ])->assertCreated()
+            ->assertJsonPath('data.hours', '40.00')
+            ->assertJsonPath('data.currency', null);
+
+        $this->assertDatabaseHas('projects', [
+            'name' => 'Projeto ERP',
+            'hours' => '40.00',
+            'currency' => null,
+        ]);
+    }
+
+    public function test_project_rejects_negative_hours(): void
     {
         Passport::actingAs(User::factory()->create());
 
@@ -63,13 +122,34 @@ class ProjectTest extends TestCase
             'expected_ends_on' => '2026-07-30',
         ];
 
-        $this->postJson('/api/projects', $payload)
+        $this->postJson('/api/projects', [...$payload, 'hours' => -1])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors('currency');
+            ->assertJsonValidationErrors('hours');
 
-        $this->postJson('/api/projects', [...$payload, 'currency' => 'ZZZ'])
+        $this->postJson('/api/projects', [...$payload, 'hours' => 'abc'])
             ->assertUnprocessable()
-            ->assertJsonValidationErrors('currency');
+            ->assertJsonValidationErrors('hours');
+
+        $this->assertDatabaseCount('projects', 0);
+    }
+
+    public function test_user_can_update_project_hours(): void
+    {
+        $user = User::factory()->create();
+        $project = Project::factory()->create(['user_id' => $user->id, 'hours' => null]);
+        Passport::actingAs($user);
+
+        $this->patchJson("/api/projects/{$project->id}", ['hours' => 12.5])
+            ->assertOk()
+            ->assertJsonPath('data.hours', '12.50');
+
+        $this->assertDatabaseHas('projects', ['id' => $project->id, 'hours' => '12.50']);
+
+        $this->patchJson("/api/projects/{$project->id}", ['hours' => null])
+            ->assertOk()
+            ->assertJsonPath('data.hours', null);
+
+        $this->assertDatabaseHas('projects', ['id' => $project->id, 'hours' => null]);
     }
 
     public function test_user_lists_only_their_own_projects(): void
